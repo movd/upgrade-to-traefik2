@@ -23,17 +23,18 @@ services:
       - "traefik.frontend.rule=Host:dashboard.traefik.moritzvd.com"
       - "traefik.port=8080"
 
-  # whoami:
-  #   image: containous/whoami
-  #   container_name: whoami
-  #   restart: unless-stopped
-  #   networks:
-  #     - web
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.backend=whoami"
-  #     - "traefik.frontend.rule=Host:whoami.traefik.moritzvd.com"
-  #     - "traefik.docker.network=web"
+  whoami:
+    image: containous/whoami
+    container_name: whoami
+    restart: unless-stopped
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami-secure.entrypoints=https"
+      - "traefik.http.routers.whoami-secure.rule=Host(`whoami.traefik.moritzvd.com`)"
+      - "traefik.http.routers.whoami-secure.tls.certresolver=myhttpchallenge"
+
 
   # httpd:
   #   image: httpd:alpine
