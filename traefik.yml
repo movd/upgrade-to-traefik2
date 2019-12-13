@@ -1,0 +1,38 @@
+log:
+  level: INFO
+
+entryPoints:
+  dashboard:
+    address: :8080
+  http:
+    address: :80
+  https:
+    address: :443
+
+api:
+  dashboard: true
+
+certificatesResolvers:
+  httpchallenge:
+    acme:
+
+certificatesResolvers:
+  myhttpchallenge:
+    acme:
+      httpChallenge:
+        # used during the challenge
+        entryPoint: http
+      email: hi+letsencrypt@moritzvd.com
+      storage: acme.json
+      # Use Let's Encrypt Staging CA when testing!
+      # caServer: https://acme-staging-v02.api.letsencrypt.org/directory
+
+providers:
+  docker:
+    exposedByDefault: false
+    network: web
+  file:
+    filename: dynamic_conf.yml
+    watch: true
+
+accessLog: {}

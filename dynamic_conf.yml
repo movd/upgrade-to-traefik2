@@ -1,0 +1,55 @@
+http:
+  routers:
+    my-api:
+      entryPoints:
+      # Expose on :8080 aka 'dashboard'
+        - dashboard
+      # Activate this Router if Client asks for '/dashboard' or '/api'
+      rule: "PathPrefix(`/dashboard`) || PathPrefix(`/api`)"
+      # Expose the API
+      service: api@internal
+      # Use basic auth Middleware define below 
+      middlewares:
+        - dashboard-auth
+
+    my-secure-api:
+      entryPoints:
+      # Expose via https
+        - https
+      # Activate this Router if Client requests specific subdomain and '/dashboard' or '/api'
+      rule: "Host(`dashboard.traefik.moritzvd.com`) && (PathPrefix(`/api`) || PathPrefix(`/dashboard`))"
+      service: api@internal
+      middlewares:
+        - dashboard-auth
+      tls:
+        # Use ACME HTTP Challgen defined in 'traefik.yml' to get valid cert
+        certResolver: myhttpchallenge
+
+    # Catch all global Router for redirects
+    https-redirect:
+      entryPoints:
+        - http
+      # Activate this Router on any Host requested
+      rule: "hostregexp(`{host:.+}`)"
+      # A service definition is mandatory that's why we use a dummy service define at the bottom
+      service: dummy
+      middlewares:
+        - redirect-to-https
+
+  middlewares:
+    dashboard-auth:
+      basicAuth:
+        users:
+          # admin:passw0rd
+          - "admin:$2y$05$kqK7GlhnGCnt/fYdrCL2AeZykK2T0cN4sBcCaRs61vMz7yMWaR9M."
+      
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+  services:
+    dummy:
+      loadBalancer:
+        servers:
+          - url: localhost
