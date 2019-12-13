@@ -1,0 +1,65 @@
+version: "3.7"
+services:
+
+  traefik:
+    image: traefik:v1.7-alpine
+    restart: unless-stopped
+    container_name: traefik
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080" # Exposed for backend access via LAN
+    networks:
+      - web
+    volumes:
+      - ./traefik.toml:/traefik.toml
+      - ./acme.json:/acme.json
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /etc/localtime:/etc/localtime:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=dashboard"
+      - "traefik.frontend.rule=Host:dashboard.traefik.moritzvd.com"
+      - "traefik.port=8080"
+
+  whoami:
+    image: containous/whoami
+    container_name: whoami
+    restart: unless-stopped
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=whoami"
+      - "traefik.frontend.rule=Host:whoami.traefik.moritzvd.com"
+      - "traefik.docker.network=web"
+
+  httpd:
+    image: httpd:alpine
+    container_name: httpd
+    restart: unless-stopped
+    volumes:
+      - ./htdocs:/htdocs
+      - /etc/localtime:/etc/localtime:ro
+    networks:
+      - web
+    labels:
+      - "traefik.enable=true"
+      - "traefik.backend=httpd"
+      - "traefik.frontend.rule=Host:traefik.moritzvd.com"
+      - "traefik.docker.network=web"
+      - "traefik.port=80"
+      - "traefik.frontend.headers.browserXSSFilter=true"
+      - "traefik.frontend.headers.customFrameOptionsValue=SAMEORIGIN"
+      - "traefik.frontend.headers.forceSTSHeader=true"
+      - "traefik.frontend.headers.frameDeny=true"
+      - "traefik.frontend.headers.SSLHost=traefik.moritzvd.com"
+      - "traefik.frontend.headers.SSLRedirect=true"
+      - "traefik.frontend.headers.STSIncludeSubdomains=true"
+      - "traefik.frontend.headers.STSSeconds=63072000"
+      - "traefik.frontend.redirect.permanent=true"
+      - "traefik.frontend.redirect.regex=^https?://traefik.moritzvd.com/(.*)"
+      - "traefik.frontend.redirect.replacement=https://traefik.moritzvd.com/$${1}"
+
+networks:
+  web:

@@ -1,0 +1,35 @@
+defaultEntryPoints = ["http", "https"]
+
+[entryPoints]
+  [entryPoints.dashboard]
+    address = ":8080"
+    [entryPoints.dashboard.auth]
+      [entryPoints.dashboard.auth.basic]
+        users = ["admin:$2y$05$kqK7GlhnGCnt/fYdrCL2AeZykK2T0cN4sBcCaRs61vMz7yMWaR9M."]
+  [entryPoints.http]
+    address = ":80"
+      [entryPoints.http.redirect]
+        entryPoint = "https"
+  [entryPoints.https]
+    address = ":443"
+      [entryPoints.https.tls]
+
+[api]
+entrypoint="dashboard"
+
+[acme]
+email = "hi+letsencrypt@moritzvd.com"
+storage = "acme.json"
+entryPoint = "https"
+onHostRule = true
+  [acme.httpChallenge]
+  entryPoint = "http"
+
+[docker]
+domain = "traefik.moritzvd.com"
+watch = true
+network = "web"
+exposedByDefault = false
+
+[accessLog]
+
